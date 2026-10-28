@@ -1,52 +1,183 @@
 <h1>ExpNo 4 : Implement A* search algorithm for a Graph</h1> 
-<h3>Name:       </h3>
-<h3>Register Number:           </h3>
+<h3>Name: VIDHULPRABA R  </h3>
+<h3>Register Number:    212225040488     </h3>
+ DATE: 26/10/2026
 <H3>Aim:</H3>
 <p>To ImplementA * Search algorithm for a Graph using Python 3.</p>
 <H3>Algorithm:</H3>
 
 ``````
-// A* Search Algorithm
-1.  Initialize the open list
-2.  Initialize the closed list
-    put the starting node on the open 
-    list (you can leave its f at zero)
 
-3.  while the open list is not empty
-    a) find the node with the least f on 
-       the open list, call it "q"
+from collections import defaultdict
+import heapq
+import networkx as nx
+import matplotlib.pyplot as plt
 
-    b) pop q off the open list
-  
-    c) generate q's 8 successors and set their 
-       parents to q
-   
-    d) for each successor
-        i) if successor is the goal, stop search
-        
-        ii) else, compute both g and h for successor
-          successor.g = q.g + distance between 
-                              successor and q
-          successor.h = distance from goal to 
-          successor (This can be done using many 
-          ways, we will discuss three heuristics- 
-          Manhattan, Diagonal and Euclidean 
-          Heuristics)
-          
-          successor.f = successor.g + successor.h
 
-        iii) if a node with the same position as 
-            successor is in the OPEN list which has a 
-           lower f than successor, skip this successor
+def a_star(graph, heuristic, start, goal):
+    open_set = [(heuristic[start], 0, start)]
+    g = {start: 0}
+    parent = {start: None}
 
-        iV) if a node with the same position as 
-            successor  is in the CLOSED list which has
-            a lower f than successor, skip this successor
-            otherwise, add  the node to the open list
-     end (for loop)
-  
-    e) push q on the closed list
-    end (while loop)
+    while open_set:
+        f_score, cost_so_far, current = heapq.heappop(open_set)
+
+        # Skip outdated entries in the priority queue
+        if cost_so_far != g.get(current, float("inf")):
+            continue
+
+        if current == goal:
+            path = []
+            node = current
+
+            while node is not None:
+                path.append(node)
+                node = parent[node]
+
+            path.reverse()
+
+            print("\nShortest Path:", " -> ".join(path))
+            print("Total Cost:", g[goal])
+            return path
+
+        for neighbour, cost in graph[current]:
+            new_cost = g[current] + cost
+
+            if new_cost < g.get(neighbour, float("inf")):
+                g[neighbour] = new_cost
+                parent[neighbour] = current
+
+                f = new_cost + heuristic[neighbour]
+                heapq.heappush(
+                    open_set, (f, new_cost, neighbour)
+                )
+
+    print("Path does not exist!")
+    return None
+
+
+# Create graph
+graph = defaultdict(list)
+G = nx.Graph()
+
+n, e = map(
+    int, input("Enter number of nodes and edges: ").split()
+)
+
+print("\nEnter the edges (u v cost):")
+
+for i in range(e):
+    u, v, cost = input(f"Edge {i + 1}: ").split()
+    cost = int(cost)
+
+    if cost < 0:
+        raise ValueError("Edge costs must be non-negative.")
+
+    graph[u].append((v, cost))
+    graph[v].append((u, cost))
+    G.add_edge(u, v, weight=cost)
+
+# Enter heuristic values
+heuristic = {}
+
+print("\nEnter Heuristic Values:")
+
+for i in range(n):
+    node, h = input(
+        f"{i + 1}. Node Heuristic: "
+    ).split()
+
+    heuristic[node] = int(h)
+
+    # Include nodes even if they have no edges
+    graph.setdefault(node, [])
+    G.add_node(node)
+
+print("\nAdjacency List:")
+
+for node in graph:
+    print(node, "->", graph[node])
+
+print("\nHeuristic Values:")
+print(heuristic)
+
+# Draw original graph
+plt.figure(figsize=(8, 6))
+
+pos = nx.spring_layout(G, seed=20)
+
+nx.draw_networkx_nodes(
+    G, pos, node_color="skyblue", node_size=1800
+)
+nx.draw_networkx_labels(
+    G, pos, font_size=12, font_weight="bold"
+)
+nx.draw_networkx_edges(G, pos, width=2)
+
+edge_labels = nx.get_edge_attributes(G, "weight")
+nx.draw_networkx_edge_labels(
+    G, pos, edge_labels=edge_labels
+)
+
+plt.title("Original Graph")
+plt.axis("off")
+plt.tight_layout()
+plt.show()
+
+# Enter start and goal nodes
+start = input("\nEnter Start Node: ")
+goal = input("Enter Goal Node: ")
+
+if start not in heuristic:
+    print("Invalid Start Node!")
+
+elif goal not in heuristic:
+    print("Invalid Goal Node!")
+
+else:
+    shortest_path = a_star(
+        graph, heuristic, start, goal
+    )
+
+    if shortest_path:
+        # Get edges belonging to the shortest path
+        path_edges = [
+            (shortest_path[i], shortest_path[i + 1])
+            for i in range(len(shortest_path) - 1)
+        ]
+
+        # Draw graph with shortest path highlighted
+        plt.figure(figsize=(8, 6))
+
+        nx.draw_networkx_nodes(
+            G, pos, node_color="skyblue", node_size=1800
+        )
+        nx.draw_networkx_labels(
+            G, pos, font_size=12, font_weight="bold"
+        )
+
+        # Draw all edges in gray
+        nx.draw_networkx_edges(
+            G, pos, edge_color="gray", width=2
+        )
+
+        # Highlight shortest path in red
+        nx.draw_networkx_edges(
+            G,
+            pos,
+            edgelist=path_edges,
+            edge_color="red",
+            width=4
+        )
+
+        nx.draw_networkx_edge_labels(
+            G, pos, edge_labels=edge_labels
+        )
+
+        plt.title("Shortest Path Highlighted (Red)")
+        plt.axis("off")
+        plt.tight_layout()
+        plt.show()
 
 ``````
 
@@ -54,7 +185,7 @@
 <h2>Sample Graph I</h2>
 <hr>
 
-![image](https://github.com/natsaravanan/19AI405FUNDAMENTALSOFARTIFICIALINTELLIGENCE/assets/87870499/b1377c3f-011a-4c0f-a843-516842ae056a)
+<img width="1346" height="782" alt="Screenshot 2026-10-28 101238" src="https://github.com/user-attachments/assets/919c8e00-b303-4713-988d-79b46d37e1c4" />
 
 <hr>
 <h2>Sample Input</h2>
